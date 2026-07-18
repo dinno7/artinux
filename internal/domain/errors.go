@@ -6,6 +6,45 @@ import (
 )
 
 var (
+	ErrInvalidExtension = NewDomainError(
+		"invalid_file_extension",
+		"file extension is not valid",
+	)
+	ErrFileEmptyChecksum = NewDomainError(
+		"file_empty_checksum",
+		"file checksum is empty",
+	)
+	ErrFileUploadNotSupportIntegrity = NewDomainError(
+		"file_not_integrity",
+		"file integrity violation",
+	)
+	ErrFileChecksumNotSame = NewDomainError(
+		"file_invalid_checksum",
+		"file's checksum is not the same as local one",
+	)
+	ErrFileTooLarge = NewDomainError("file_too_large", "file is too large")
+	ErrPathNotFile  = NewDomainError(
+		"not_a_file",
+		"provided path is not a file",
+	)
+	ErrFileNotAccessible    = NewDomainError("file_not_accessible", "file not accessible")
+	ErrFileIsEmpty          = NewDomainError("empty_file", "file is empty")
+	ErrFileNotExists        = NewDomainError("file_not_exists", "file not exists")
+	ErrAuthenticationFailed = NewDomainError("authentication_failed", "authentication failed")
+
+	ErrStorageUnavailable    = NewDomainError("storage_unavailable", "storage unavailable")
+	ErrStorageFailedToUpload = NewDomainError(
+		"storage_failed_upload",
+		"failed to upload object to storage",
+	)
+	ErrStorageFailedToDownload = NewDomainError(
+		"storage_failed_download",
+		"failed to download from object storage",
+	)
+	ErrStorageFailedToGetMetadata = NewDomainError(
+		"storage_failed_metadata",
+		"failed to getting object's metadata",
+	)
 
 	ErrInvalidConfiguration = NewDomainError("invalid_configuration", "configuration is not valid")
 	ErrNotFound             = NewDomainError("not_found", "resource not found")
