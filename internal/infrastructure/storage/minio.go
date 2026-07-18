@@ -3,12 +3,12 @@ package storage
 import (
 	"cmp"
 	"context"
-	"fmt"
 	"io"
 	"strings"
 	"time"
 
 	"github.com/dinno7/artinux/internal/domain"
+	"github.com/dinno7/artinux/internal/domain/entities"
 	"github.com/dinno7/artinux/internal/domain/ports"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -84,3 +84,32 @@ func (s *minioStorage) CreateBucket(ctx context.Context, bucketName string, regi
 	}
 	return nil
 }
+
+func (s *minioStorage) Upload(
+	ctx context.Context,
+	reader io.Reader,
+	artifact *entities.Artifact,
+) (string, error) {
+	info, err := s.client.PutObject(
+		ctx,
+		s.bucketName,
+		artifact.ObjectKey,
+		reader,
+		artifact.Size,
+		minio.PutObjectOptions{
+			UserMetadata: artifact.Metadata.ToMap(),
+			Checksum:     minio.ChecksumSHA256,
+		},
+	)
+	if err != nil {
+		return "", domain.ErrStorageFailedToUpload.Wrap(err)
+	}
+
+	// stat, err := s.client.StatObject(ctx, s.bucketName, info.Key, minio.StatObjectOptions{})
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to %w", err)
+	// }
+
+	return info.ChecksumSHA256, nil
+}
+
