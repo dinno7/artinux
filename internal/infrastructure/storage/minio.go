@@ -33,9 +33,15 @@ func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
 		return nil, err
 	}
 
-	return &minioStorage{
+	s := &minioStorage{
 		client: minioClient,
-	}, nil
+	}
+
+	if err := s.Ping(context.Background()); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 func (s *minioStorage) Ping(ctx context.Context) error {
