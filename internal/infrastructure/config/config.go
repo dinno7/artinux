@@ -10,13 +10,14 @@ type Config struct {
 }
 
 type ObjectStorage struct {
-	Endpoint            string        `mapstructure:"endpoint"`
-	Username            string        `mapstructure:"username"`
-	Password            string        `mapstructure:"password"`
-	Region              string        `mapstructure:"region"`
-	UseSSL              bool          `mapstructure:"use_ssl"`
-	BucketName          string        `mapstructure:"bucket_name"`
-	HealthCheckInterval time.Duration `mapstructure:"health_check_interval"`
+	Endpoint         string        `mapstructure:"endpoint"`
+	Username         string        `mapstructure:"username"`
+	Password         string        `mapstructure:"password"`
+	Region           string        `mapstructure:"region"`
+	UseSSL           bool          `mapstructure:"use_ssl"`
+	BucketName       string        `mapstructure:"bucket_name"`
+	HealthInterval   time.Duration `mapstructure:"health_interval"`
+	MaxUploadRetries int           `mapstructure:"max_retries"`
 }
 
 type Upload struct {
