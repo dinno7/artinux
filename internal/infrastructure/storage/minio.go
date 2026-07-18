@@ -51,3 +51,19 @@ func (s *minioStorage) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (s *minioStorage) CreateBucket(ctx context.Context, bucketName string, region string) error {
+	normBucketName := strings.TrimSpace(strings.ToLower(bucketName))
+
+	isBucketExists, err := s.client.BucketExists(ctx, normBucketName)
+	if err != nil {
+		return err
+	}
+	if !isBucketExists {
+		return s.client.MakeBucket(
+			ctx,
+			normBucketName,
+			minio.MakeBucketOptions{Region: region, ObjectLocking: true, ForceCreate: false},
+		)
+	}
+	return nil
+}
