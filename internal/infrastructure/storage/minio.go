@@ -1,7 +1,9 @@
 package storage
 
 import (
+	"cmp"
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -18,19 +20,23 @@ type minioStorage struct {
 }
 
 type MinIOConfig struct {
-	Endpoint        string
-	AccessKeyID     string
-	SecretAccessKey string
-	BucketName      string
-	Region          string
-	HealthInterval  time.Duration
-	UseSSL          bool
+	Endpoint         string
+	AccessKeyID      string
+	SecretAccessKey  string
+	BucketName       string
+	Region           string
+	HealthInterval   time.Duration
+	UseSSL           bool
+	MaxUploadRetries int
 }
 
 func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
-		Secure: cfg.UseSSL,
+		Creds:           credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
+		Secure:          cfg.UseSSL,
+		MaxRetries:      cmp.Or(cfg.MaxUploadRetries, 10),
+		Region:          cfg.Region,
+		TrailingHeaders: true,
 	})
 	if err != nil {
 		return nil, err
