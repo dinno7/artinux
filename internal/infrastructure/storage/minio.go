@@ -1,0 +1,47 @@
+package storage
+
+import (
+	"context"
+	"io"
+	"strings"
+	"time"
+
+	"github.com/dinno7/artinux/internal/domain"
+	"github.com/dinno7/artinux/internal/domain/ports"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+type minioStorage struct {
+	client *minio.Client
+}
+
+type MinIOConfig struct {
+	Endpoint            string
+	AccessKeyID         string
+	SecretAccessKey     string
+	HealthCheckInterval time.Duration
+	UseSSL              bool
+}
+
+func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
+	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
+		Secure: cfg.UseSSL,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &minioStorage{
+		client: minioClient,
+	}, nil
+}
+
+func (s *minioStorage) Ping(ctx context.Context) error {
+	if _, err := s.client.ListBuckets(ctx); err != nil {
+		return domain.ErrStorageUnavailable.Wrap(err)
+	}
+	return nil
+}
+
