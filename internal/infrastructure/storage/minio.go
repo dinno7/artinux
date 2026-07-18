@@ -13,15 +13,18 @@ import (
 )
 
 type minioStorage struct {
-	client *minio.Client
+	client     *minio.Client
+	bucketName string
 }
 
 type MinIOConfig struct {
-	Endpoint            string
-	AccessKeyID         string
-	SecretAccessKey     string
-	HealthCheckInterval time.Duration
-	UseSSL              bool
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	BucketName      string
+	Region          string
+	HealthInterval  time.Duration
+	UseSSL          bool
 }
 
 func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
@@ -34,10 +37,18 @@ func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
 	}
 
 	s := &minioStorage{
-		client: minioClient,
+		client:     minioClient,
+		bucketName: cfg.BucketName,
 	}
 
-	if err := s.Ping(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	if err := s.Ping(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := s.CreateBucket(ctx, cfg.BucketName, cfg.Region); err != nil {
 		return nil, err
 	}
 
