@@ -124,9 +124,3 @@ func (uc *UploadArtifactUC) Execute(
 
 	return artifact.ObjectKey, nil
 }
-
-func makeEmptyUnknown(inp *string) {
-	if *inp == "" {
-		*inp = "unknown"
-	}
-}
