@@ -30,11 +30,14 @@ func ObjectStorageToArtifact(obj *minio.ObjectInfo) *entities.Artifact {
 
 func getMetaVal(obj *minio.ObjectInfo, key string) string {
 	metaKey := getMetaHeaderKey(key)
-	return cmp.Or(obj.Metadata.Get(metaKey), obj.UserMetadata[getMetaKeyPascalCase(metaKey)])
+	fromHeader := obj.Metadata.Get(metaKey)
+	fromUserMetadata := obj.UserMetadata[getMetaKeyPascalCase(key)]
+	fromUserMetadataWithPrefix := obj.UserMetadata[getMetaKeyPascalCase(metaKey)]
+	return cmp.Or(fromHeader, fromUserMetadataWithPrefix, fromUserMetadata)
 }
 
 func getMetaHeaderKey(key string) string {
-	return fmt.Sprintf("x-amz-meta-%s", key)
+	return fmt.Sprintf("x-amz-meta-%s", strings.ToLower(key))
 }
 
 func getMetaKeyPascalCase(metaKey string) string {
