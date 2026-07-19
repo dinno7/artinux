@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"io"
+	"math"
 	"strings"
 	"time"
 
@@ -126,5 +127,30 @@ func (s *minioStorage) Download(
 	artifact := ObjectStorageToArtifact(&stats)
 
 	return obj, artifact, nil
+}
+
+func (s *minioStorage) ListObjects(
+	ctx context.Context,
+	prefix string,
+	limit int,
+) ([]*entities.Artifact, error) {
+	list := s.client.ListObjects(ctx, s.bucketName, minio.ListObjectsOptions{
+		WithMetadata: true,
+		MaxKeys:      limit,
+		WithVersions: true,
+		Recursive:    true,
+		Prefix:       prefix,
+	})
+	artifacts := make([]*entities.Artifact, int(math.Min(float64(len(list)), float64(limit))))
+
+	for obj := range list {
+		if len(artifacts) >= limit {
+			break
+		}
+		a := ObjectStorageToArtifact(&obj)
+		artifacts = append(artifacts, a)
+	}
+
+	return artifacts, nil
 }
 
