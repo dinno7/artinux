@@ -11,7 +11,6 @@ import (
 
 	"github.com/dinno7/artinux/internal/domain"
 	"github.com/dinno7/artinux/internal/domain/entities"
-	"github.com/dinno7/artinux/internal/domain/ports"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -32,7 +31,7 @@ type MinIOConfig struct {
 	MaxUploadRetries int
 }
 
-func NewMinIOStorage(cfg MinIOConfig) (ports.ObjectStorage, error) {
+func NewMinIOStorage(cfg MinIOConfig) (*minioStorage, error) {
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:           credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure:          cfg.UseSSL,
