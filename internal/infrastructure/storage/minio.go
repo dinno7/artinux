@@ -154,3 +154,15 @@ func (s *minioStorage) ListObjects(
 	return artifacts, nil
 }
 
+
+func (s *minioStorage) DeleteObject(ctx context.Context, objectKey string) error {
+	if err := s.client.RemoveObject(
+		ctx,
+		s.bucketName,
+		objectKey,
+		minio.RemoveObjectOptions{},
+	); err != nil {
+		return domain.ErrStorageFailedToDeleteObject.Wrap(err)
+	}
+	return nil
+}
