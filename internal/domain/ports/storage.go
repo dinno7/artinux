@@ -14,4 +14,5 @@ type ObjectStorage interface {
 	Download(ctx context.Context, objectKey string) (io.ReadCloser, *entities.Artifact, error)
 	ListObjects(ctx context.Context, prefix string, limit int) ([]*entities.Artifact, error)
 	DeleteObject(ctx context.Context, objectKey string) error
+	DeleteBatch(ctx context.Context, objectKeys []string) error
 }

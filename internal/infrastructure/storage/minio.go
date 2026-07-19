@@ -3,6 +3,7 @@ package storage
 import (
 	"cmp"
 	"context"
+	"errors"
 	"io"
 	"math"
 	"strings"
@@ -154,7 +155,6 @@ func (s *minioStorage) ListObjects(
 	return artifacts, nil
 }
 
-
 func (s *minioStorage) DeleteObject(ctx context.Context, objectKey string) error {
 	if err := s.client.RemoveObject(
 		ctx,
@@ -166,3 +166,20 @@ func (s *minioStorage) DeleteObject(ctx context.Context, objectKey string) error
 	}
 	return nil
 }
+
+func (s *minioStorage) DeleteBatch(ctx context.Context, objectKeys []string) error {
+	objectsCh := make(chan minio.ObjectInfo)
+	go func() {
+		defer close(objectsCh)
+		for _, k := range objectKeys {
+			objectsCh <- minio.ObjectInfo{Key: k}
+		}
+	}()
+
+	errs := s.client.RemoveObjects(ctx, s.bucketName, objectsCh, minio.RemoveObjectsOptions{})
+
+	var err error = nil
+	for delErr := range errs {
+		err = errors.Join(delErr.Err)
+	}
+
