@@ -62,6 +62,10 @@ func NewMinIOStorage(cfg MinIOConfig) (*minioStorage, error) {
 	return s, nil
 }
 
+func (s *minioStorage) Name() string {
+	return "MinIO S3 Object Storage"
+}
+
 func (s *minioStorage) Ping(ctx context.Context) error {
 	if _, err := s.client.ListBuckets(ctx); err != nil {
 		return domain.ErrStorageUnavailable.Wrap(err)
@@ -100,6 +104,7 @@ func (s *minioStorage) Upload(
 		minio.PutObjectOptions{
 			UserMetadata: artifact.ToMap(),
 			Checksum:     minio.ChecksumSHA256,
+			ContentType:  "application/octet-stream",
 		},
 	)
 	if err != nil {
