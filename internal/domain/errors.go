@@ -45,6 +45,14 @@ var (
 		"storage_failed_metadata",
 		"failed to getting object's metadata",
 	)
+	ErrStorageFailedToDeleteObject = NewDomainError(
+		"storage_failed_delete_object",
+		"failed to delete object with object key",
+	)
+	ErrStorageEmptyArtifactToUpload = NewDomainError(
+		"empty_artifact_upload",
+		"no artifact to upload",
+	)
 
 	ErrInvalidConfiguration = NewDomainError("invalid_configuration", "configuration is not valid")
 	ErrNotFound             = NewDomainError("not_found", "resource not found")
