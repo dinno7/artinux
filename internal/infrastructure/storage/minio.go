@@ -97,7 +97,7 @@ func (s *minioStorage) Upload(
 		reader,
 		artifact.Size,
 		minio.PutObjectOptions{
-			UserMetadata: artifact.Metadata.ToMap(),
+			UserMetadata: artifact.ToMap(),
 			Checksum:     minio.ChecksumSHA256,
 		},
 	)
@@ -105,11 +105,26 @@ func (s *minioStorage) Upload(
 		return "", domain.ErrStorageFailedToUpload.Wrap(err)
 	}
 
-	// stat, err := s.client.StatObject(ctx, s.bucketName, info.Key, minio.StatObjectOptions{})
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to %w", err)
-	// }
-
 	return info.ChecksumSHA256, nil
+}
+
+func (s *minioStorage) Download(
+	ctx context.Context,
+	objectKey string,
+) (io.ReadCloser, *entities.Artifact, error) {
+	obj, err := s.client.GetObject(ctx, s.bucketName, objectKey, minio.GetObjectOptions{
+		Checksum: true,
+	})
+	if err != nil {
+		return nil, nil, domain.ErrStorageFailedToDownload.Wrap(err)
+	}
+	stats, err := obj.Stat()
+	if err != nil {
+		return nil, nil, domain.ErrStorageFailedToGetMetadata.Wrap(err)
+	}
+
+	artifact := ObjectStorageToArtifact(&stats)
+
+	return obj, artifact, nil
 }
 
