@@ -12,4 +12,5 @@ type ObjectStorage interface {
 	CreateBucket(ctx context.Context, bucketName string, region string) error
 	Upload(ctx context.Context, reader io.Reader, artifact *entities.Artifact) (string, error)
 	Download(ctx context.Context, objectKey string) (io.ReadCloser, *entities.Artifact, error)
+	ListObjects(ctx context.Context, prefix string, limit int) ([]*entities.Artifact, error)
 }
