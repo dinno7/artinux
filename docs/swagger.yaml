@@ -1,0 +1,229 @@
+basePath: /api/v1
+definitions:
+  artifacts.DeleteArtifactsDto:
+    properties:
+      object_keys:
+        items:
+          type: string
+        type: array
+    type: object
+  entities.Artifact:
+    properties:
+      architecture:
+        type: string
+      checksum:
+        type: string
+      extension:
+        type: string
+      hostname:
+        type: string
+      name:
+        type: string
+      objectKey:
+        type: string
+      originalName:
+        type: string
+      os:
+        type: string
+      size:
+        format: int64
+        type: integer
+      uploadedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  http.healthResult:
+    description: Standard API response wrapper with status, message, and data
+    properties:
+      name:
+        type: string
+      ok:
+        type: boolean
+    type: object
+  map_string_string:
+    additionalProperties:
+      type: string
+    type: object
+  response.ErrorResponseData-any:
+    properties:
+      message:
+        description: Error message
+        type: string
+      meta: {}
+      status:
+        description: HTTP status code
+        type: integer
+    type: object
+  response.ResponseSuccessData-array_entities_Artifact:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/entities.Artifact'
+        type: array
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  response.ResponseSuccessData-http_healthResult:
+    properties:
+      data:
+        $ref: '#/definitions/http.healthResult'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  response.ResponseSuccessData-map_string_string:
+    properties:
+      data:
+        $ref: '#/definitions/map_string_string'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+info:
+  contact:
+    email: tahadlrb7@gmail.com
+    name: Taha Delroba
+  description: Artifact Manager
+  termsOfService: http://swagger.io/terms/
+  title: Artinux
+paths:
+  /api/v1/health:
+    get:
+      description: Runs Ping(ctx) for each configured pingable and reports per-component
+        readiness.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.ResponseSuccessData-http_healthResult'
+      summary: Health check
+      tags:
+      - health
+  /artifacts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes one or more artifacts by their object keys. Currently single-key
+        deletion only; batch delete is not yet implemented.
+      parameters:
+      - description: Object keys to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/artifacts.DeleteArtifactsDto'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Artifact deleted successfully
+        "400":
+          description: Bad request - invalid payload, empty keys, or batch delete
+            not implemented
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+      summary: Delete artifacts
+      tags:
+      - artifacts
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a filtered, paginated list of artifacts from storage.
+        Supports prefix filtering and result limiting.
+      parameters:
+      - description: Filter artifacts by key prefix
+        example: artifacts/linux/amd64/
+        in: query
+        name: prefix
+        type: string
+      - description: Maximum number of results
+        example: 50
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ResponseSuccessData-array_entities_Artifact'
+        "400":
+          description: Bad request - invalid parameters
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+      summary: List artifacts
+      tags:
+      - artifacts
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a single artifact file with system metadata (arch, os,
+        username, hostname). Supports multipart/form-data with file and form fields.
+      parameters:
+      - description: Target architecture (e.g., amd64, arm64)
+        example: amd64
+        in: formData
+        name: arch
+        required: true
+        type: string
+      - description: Target operating system (e.g., linux, darwin, windows)
+        example: linux
+        in: formData
+        name: os
+        required: true
+        type: string
+      - description: Username of the uploader machine
+        example: johndoe
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Hostname of the source machine
+        example: web-server-01
+        in: formData
+        name: hostname
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Artifact file to upload (multipart)
+        in: formData
+        items:
+          type: file
+        name: artifacts
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.ResponseSuccessData-map_string_string'
+        "400":
+          description: Bad request - missing required field or no files uploaded
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+      summary: Upload artifact
+      tags:
+      - artifacts
+swagger: "2.0"

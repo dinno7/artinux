@@ -1,0 +1,334 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Artifact Manager",
+        "title": "Artinux",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Taha Delroba",
+            "email": "tahadlrb7@gmail.com"
+        }
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/api/v1/health": {
+            "get": {
+                "description": "Runs Ping(ctx) for each configured pingable and reports per-component readiness.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseSuccessData-http_healthResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/artifacts": {
+            "get": {
+                "description": "Retrieves a filtered, paginated list of artifacts from storage. Supports prefix filtering and result limiting.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "artifacts"
+                ],
+                "summary": "List artifacts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "artifacts/linux/amd64/",
+                        "description": "Filter artifacts by key prefix",
+                        "name": "prefix",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 50,
+                        "description": "Maximum number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseSuccessData-array_entities_Artifact"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid parameters",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Uploads a single artifact file with system metadata (arch, os, username, hostname). Supports multipart/form-data with file and form fields.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "artifacts"
+                ],
+                "summary": "Upload artifact",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "amd64",
+                        "description": "Target architecture (e.g., amd64, arm64)",
+                        "name": "arch",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "linux",
+                        "description": "Target operating system (e.g., linux, darwin, windows)",
+                        "name": "os",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "johndoe",
+                        "description": "Username of the uploader machine",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "web-server-01",
+                        "description": "Hostname of the source machine",
+                        "name": "hostname",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Artifact file to upload (multipart)",
+                        "name": "artifacts",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseSuccessData-map_string_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing required field or no files uploaded",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes one or more artifacts by their object keys. Currently single-key deletion only; batch delete is not yet implemented.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "artifacts"
+                ],
+                "summary": "Delete artifacts",
+                "parameters": [
+                    {
+                        "description": "Object keys to delete",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/artifacts.DeleteArtifactsDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Artifact deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad request - invalid payload, empty keys, or batch delete not implemented",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "artifacts.DeleteArtifactsDto": {
+            "type": "object",
+            "properties": {
+                "object_keys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entities.Artifact": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "extension": {
+                    "type": "string"
+                },
+                "hostname": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "objectKey": {
+                    "type": "string"
+                },
+                "originalName": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "uploadedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.healthResult": {
+            "description": "Standard API response wrapper with status, message, and data",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "map_string_string": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "response.ErrorResponseData-any": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Error message",
+                    "type": "string"
+                },
+                "meta": {},
+                "status": {
+                    "description": "HTTP status code",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ResponseSuccessData-array_entities_Artifact": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Artifact"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ResponseSuccessData-http_healthResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/http.healthResult"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ResponseSuccessData-map_string_string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/map_string_string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
