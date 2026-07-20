@@ -3,6 +3,7 @@ package services
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dinno7/artinux/internal/domain"
@@ -15,7 +16,7 @@ func TestCreatingNewFieValidator(t *testing.T) {
 	require.NotNil(t, fv)
 
 	assert.Equal(t, []string{"deb", "gz"}, fv.allowedExtensions)
-	assert.Equal(t, int64(1024), fv.maxFileSizeBytes)
+	assert.Equal(t, int64(1024*1024*1024), fv.maxFileSizeBytes)
 }
 
 func TestFileValidator_Validate(t *testing.T) {
@@ -96,12 +97,12 @@ func TestFileValidator_Validate(t *testing.T) {
 }
 
 func TestFileValidator_FileTooLarge(t *testing.T) {
-	validator := NewFileValidator([]string{"deb"}, 10)
+	validator := NewFileValidator([]string{"deb"}, 1)
 
 	path := createTempFile(
 		t,
 		"somefile.deb",
-		"this content is definitely more than 10 bytes, HaHaHa",
+		strings.Repeat("string", 1024*1024),
 	)
 	_, err := validator.Validate(path)
 	assert.Error(t, err)
