@@ -4,7 +4,7 @@ import (
 	"github.com/dinno7/artinux/internal/application/usecases"
 	_ "github.com/dinno7/artinux/internal/domain/entities"
 	"github.com/dinno7/artinux/pkg/response"
-	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v4"
 )
 
 type ListArtifactDto struct {
@@ -25,7 +25,7 @@ type ListArtifactDto struct {
 //	@Failure		400		{object}	response.ErrorResponseData[any]						"Bad request - invalid parameters"
 //	@Failure		500		{object}	response.ErrorResponseData[any]						"Internal server error"
 //	@Router			/artifacts [get]
-func (h *ArtifactHTTPHandler) ListArtifact(c *echo.Context) error {
+func (h *ArtifactHTTPHandler) ListArtifact(c echo.Context) error {
 	var payload ListArtifactDto
 
 	if err := c.Bind(&payload); err != nil {

@@ -3,7 +3,7 @@ package response
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v4"
 )
 
 // ErrorResponseData represents a standard API error response
@@ -18,7 +18,7 @@ type ErrorResponseData[T any] struct {
 }
 
 // ErrorResponse sends a standardized error response.
-func ErrorResponse[T any](c *echo.Context, message string, status int, meta ...T) error {
+func ErrorResponse[T any](c echo.Context, message string, status int, meta ...T) error {
 	res := ErrorResponseData[T]{
 		Status:  status,
 		Message: message,
@@ -30,6 +30,6 @@ func ErrorResponse[T any](c *echo.Context, message string, status int, meta ...T
 }
 
 // BadRequestResponse sends a standardized error response with 400 code.
-func BadRequestResponse(c *echo.Context, message string) error {
+func BadRequestResponse(c echo.Context, message string) error {
 	return ErrorResponse[any](c, message, http.StatusBadRequest)
 }

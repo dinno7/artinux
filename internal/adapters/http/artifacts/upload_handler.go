@@ -9,7 +9,7 @@ import (
 
 	"github.com/dinno7/artinux/internal/application/usecases"
 	"github.com/dinno7/artinux/pkg/response"
-	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v4"
 )
 
 // UploadArtifact godoc
@@ -30,7 +30,7 @@ import (
 //	@Failure		500			{object}	response.ErrorResponseData[any]	"Internal server error"
 //
 //	@Router			/artifacts [post]
-func (h *ArtifactHTTPHandler) UploadArtifact(c *echo.Context) error {
+func (h *ArtifactHTTPHandler) UploadArtifact(c echo.Context) error {
 	arch := c.FormValue("arch")
 	osName := c.FormValue("os")
 	username := c.FormValue("username")

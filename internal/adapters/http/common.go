@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dinno7/artinux/pkg/response"
-	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v4"
 )
 
 type Pingable interface {
@@ -36,7 +36,7 @@ type healthResult struct {
 //	@Success		200	{object}	response.ResponseSuccessData[healthResult]	"Success"
 //
 // Health checks all configured pingables and returns their status.
-func (h *CommonHTTPHandler) Health(c *echo.Context) error {
+func (h *CommonHTTPHandler) Health(c echo.Context) error {
 	results := []*healthResult{}
 	for _, pingable := range h.pingables {
 		err := pingable.Ping(c.Request().Context())

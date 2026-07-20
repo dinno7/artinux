@@ -4,7 +4,7 @@ import (
 	"github.com/dinno7/artinux/internal/application/usecases"
 	_ "github.com/dinno7/artinux/internal/domain/entities"
 	"github.com/dinno7/artinux/pkg/response"
-	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v4"
 )
 
 type DeleteArtifactsDto struct {
@@ -23,7 +23,7 @@ type DeleteArtifactsDto struct {
 //	@Failure		400		{object}	response.ErrorResponseData[any]	"Bad request - invalid payload, empty keys, or batch delete not implemented"
 //	@Failure		500		{object}	response.ErrorResponseData[any]	"Internal server error"
 //	@Router			/artifacts [delete]
-func (h *ArtifactHTTPHandler) DeleteArtifacts(c *echo.Context) error {
+func (h *ArtifactHTTPHandler) DeleteArtifacts(c echo.Context) error {
 	var payload DeleteArtifactsDto
 	if err := c.Bind(&payload); err != nil {
 		return response.BadRequestResponse(c, "object_keys must be array of keys")
