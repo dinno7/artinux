@@ -8,7 +8,6 @@ import (
 	httpCommon "github.com/dinno7/artinux/internal/adapters/http"
 	httpArtifacts "github.com/dinno7/artinux/internal/adapters/http/artifacts"
 	"github.com/dinno7/artinux/internal/application/usecases"
-	"github.com/dinno7/artinux/internal/domain"
 	"github.com/dinno7/artinux/internal/domain/services"
 	hasher "github.com/dinno7/artinux/internal/infrastructure/checksum_hasher"
 	"github.com/dinno7/artinux/internal/infrastructure/config"
@@ -44,7 +43,10 @@ func main() {
 		},
 	)
 	if err != nil {
-		logger.Fatal("failed to connect MinIO", domain.ErrStorageUnavailable.Wrap(err))
+		logger.Fatal(
+			"failed to connect MinIO",
+			err,
+		)
 	}
 
 	checksumHasher := hasher.NewSha256Hasher()

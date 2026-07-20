@@ -56,3 +56,13 @@ func TestDynamicMessage(t *testing.T) {
 	domErr.MessageF("some %s error failed", "test")
 	assert.Equal(t, fmt.Sprintf("some %s error failed", "test"), domErr.Message())
 }
+
+func TestErrWrapItself(t *testing.T) {
+	require.NotPanics(t, func() {
+		err := ErrStorageUnavailable.Wrap(ErrStorageUnavailable)
+		require.NotNil(t, err)
+		msg := err.Error()
+		require.NotEmpty(t, msg)
+		require.Contains(t, msg, "storage unavailable")
+	})
+}

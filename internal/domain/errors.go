@@ -80,6 +80,9 @@ func NewDomainError(code, message string) *DomainError {
 
 // Wrap wraps an existing error with an existing DomainError.
 func (e *DomainError) Wrap(err error) *DomainError {
+	if errors.Is(err, e) {
+		return e
+	}
 	e.err = err
 	return e
 }
@@ -87,7 +90,7 @@ func (e *DomainError) Wrap(err error) *DomainError {
 // Error implements the standard error interface.
 func (e *DomainError) Error() string {
 	if e.err != nil {
-		return fmt.Errorf("%s: %s (caused by: %w)", e.Code, e.message, e.err).Error()
+		return fmt.Sprintf("%s: %s (caused by: %s)", e.Code, e.message, e.err.Error())
 	}
 	return fmt.Sprintf("%s: %s", e.Code, e.message)
 }
