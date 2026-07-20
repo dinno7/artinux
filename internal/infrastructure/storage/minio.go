@@ -187,3 +187,6 @@ func (s *minioStorage) DeleteBatch(ctx context.Context, objectKeys []string) err
 		err = errors.Join(delErr.Err)
 	}
 
+	return err
+}
+
