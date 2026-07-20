@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 
 	_ "github.com/dinno7/artinux/docs"
 	"github.com/dinno7/artinux/internal/domain/ports"
-	"github.com/labstack/echo/v5"
-	"github.com/labstack/echo/v5/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
-	echoSwagger "github.com/swaggo/echo-swagger/v2"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 const (
@@ -44,8 +44,6 @@ type Router struct {
 func NewRouter(addr string, logger ports.Logger) *Router {
 	e := echo.New()
 	setupMiddlewares(e, logger)
-
-	// e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET(fmt.Sprintf("%s/*", docsPath), echoSwagger.WrapHandler)
 
@@ -113,10 +111,10 @@ func setupMiddlewares(e *echo.Echo, logger ports.Logger) {
 			// NB: side-effect of that is - request is now "committed" written to the client. Middlewares up in chain can not
 			// change Response status code or response body.
 			HandleError: true,
-			Skipper: func(c *echo.Context) bool {
+			Skipper: func(c echo.Context) bool {
 				return strings.HasPrefix(c.Request().URL.Path, docsPath)
 			},
-			LogValuesFunc: func(_ *echo.Context, v middleware.RequestLoggerValues) error {
+			LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 				if v.Error == nil {
 					logger.Info(
 						"REQUEST",

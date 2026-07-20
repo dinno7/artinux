@@ -14,6 +14,7 @@ import (
 	"github.com/dinno7/artinux/internal/infrastructure/config"
 	"github.com/dinno7/artinux/internal/infrastructure/logger"
 	"github.com/dinno7/artinux/internal/infrastructure/storage"
+	"github.com/dinno7/artinux/pkg/server"
 )
 
 func main() {
@@ -72,7 +73,7 @@ func main() {
 		deleteArtifactUC,
 	)
 
-	router := NewRouter("localhost:7000", logger)
+	router := server.NewRouter("localhost:7000", logger)
 	apiGroup := router.GetAPIGroup()
 
 	apiGroup.GET("/health", commonHTTPHandler.Health)
