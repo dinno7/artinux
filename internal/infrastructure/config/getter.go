@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dinno7/artinux/internal/domain"
 	"github.com/spf13/viper"
@@ -69,9 +70,11 @@ func getDefaultConfig() *Config {
 			Format: "json",
 		},
 		ObjectStorage: ObjectStorage{
-			UseSSL:     false,
-			BucketName: "Artifacts",
-			Region:     "us-east-1",
+			BucketName:       "artifacts",
+			Region:           "us-east-1",
+			UseSSL:           false,
+			MaxUploadRetries: 10,
+			HealthInterval:   time.Second * 5,
 		},
 	}
 }

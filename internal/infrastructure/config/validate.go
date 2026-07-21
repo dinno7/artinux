@@ -74,7 +74,7 @@ func (cfg *Config) validate() error {
 
 	// INFO: Upload cfg
 	if cfg.Upload.MaxSizeMB < 0 {
-		return ErrRequiredStorageRegion
+		return ErrRequiredUploadMaxSize
 	}
 	if len(cfg.Upload.AllowedFileExtensions) == 0 {
 		return ErrRequiredUploadAllowedFileExts
