@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 	"slices"
+	"strings"
 )
 
 var (
@@ -28,6 +29,9 @@ var (
 	ErrRequiredUploadMaxSize         = errors.New("'upload.max_size_mb' is required")
 	ErrRequiredUploadAllowedFileExts = errors.New(
 		"'upload.allowed_file_exts' should have at least 1 ext",
+	)
+	ErrFileExtStartsWithDot = errors.New(
+		"'upload.allowed_file_exts' should not starts with '.'",
 	)
 )
 
@@ -78,6 +82,11 @@ func (cfg *Config) validate() error {
 	}
 	if len(cfg.Upload.AllowedFileExtensions) == 0 {
 		return ErrRequiredUploadAllowedFileExts
+	}
+	for _, ext := range cfg.Upload.AllowedFileExtensions {
+		if strings.HasPrefix(ext, ".") {
+			return ErrFileExtStartsWithDot
+		}
 	}
 
 	return nil
