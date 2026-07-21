@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand/v2"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 
@@ -63,6 +64,11 @@ func (h *ArtifactHTTPHandler) UploadArtifact(c echo.Context) error {
 		return response.BadRequestResponse(c, "artifacts is required")
 	}
 
+	// TODO: Add batch uploading support
+	if len(artifactFiles) > 1 {
+		artifactFiles = []*multipart.FileHeader{artifactFiles[0]}
+	}
+
 	requestedFiles := []string{}
 
 	tmpDirPath := filepath.Join(
@@ -114,14 +120,14 @@ func (h *ArtifactHTTPHandler) UploadArtifact(c echo.Context) error {
 			},
 		)
 		if err != nil {
-			return err
+			return response.BadRequestResponse(c, err.Error())
 		}
 		return response.CreatedResponse(c, "Artifact uploaded successfully", map[string]string{
 			"object_key": objKey,
 		})
 	}
 
-	// TODO: Batch upload
+	// TODO: Add batch uploading support
 
 	return echo.ErrInternalServerError
 }
