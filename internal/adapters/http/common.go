@@ -13,37 +13,47 @@ type Pingable interface {
 }
 
 type CommonHTTPHandler struct {
+	env       string
 	pingables []Pingable
 }
 
-func NewCommonHTTPHandler(pingables []Pingable) *CommonHTTPHandler {
+func NewCommonHTTPHandler(env string, pingables []Pingable) *CommonHTTPHandler {
 	return &CommonHTTPHandler{
+		env:       env,
 		pingables: pingables,
 	}
 }
 
 // @Description	Standard API response wrapper with status, message, and data
-type healthResult struct {
+type dependency struct {
 	Name string `json:"name"`
 	Ok   bool   `json:"ok"`
+}
+type healthResult struct {
+	Env          string       `json:"env"`
+	Dependencies []dependency `json:"dependencies"`
 }
 
 //	@Summary		Health check
 //	@Description	Runs Ping(ctx) for each configured pingable and reports per-component readiness.
-//	@Router			/api/v1/health [get]
+//	@Router			/health [get]
 //	@Tags			health
 //	@Produce		json
 //	@Success		200	{object}	response.ResponseSuccessData[healthResult]	"Success"
 //
 // Health checks all configured pingables and returns their status.
 func (h *CommonHTTPHandler) Health(c echo.Context) error {
-	results := []*healthResult{}
+	dependencies := []dependency{{"HTTP Server", true}}
 	for _, pingable := range h.pingables {
 		err := pingable.Ping(c.Request().Context())
-		results = append(results, &healthResult{
+		dependencies = append(dependencies, dependency{
 			Name: pingable.Name(),
 			Ok:   err == nil,
 		})
+	}
+	results := &healthResult{
+		Env:          h.env,
+		Dependencies: dependencies,
 	}
 	return response.OkResponse(c, "Successfull", results)
 }

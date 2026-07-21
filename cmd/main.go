@@ -65,7 +65,7 @@ func main() {
 	deleteArtifactUC := usecases.NewDeleteArtifactUC(logger, objStorage)
 	listArtifactUC := usecases.NewListArtifactUC(logger, objStorage)
 
-	commonHTTPHandler := httpCommon.NewCommonHTTPHandler([]httpCommon.Pingable{
+	commonHTTPHandler := httpCommon.NewCommonHTTPHandler(cfg.Env, []httpCommon.Pingable{
 		objStorage,
 	})
 	artifactHTTPHandler := httpArtifacts.NewArtifactHTTPHandler(
