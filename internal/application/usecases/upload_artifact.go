@@ -3,12 +3,12 @@ package usecases
 import (
 	"context"
 	"io"
-	"os"
 
 	"github.com/dinno7/artinux/internal/domain"
 	"github.com/dinno7/artinux/internal/domain/entities"
 	"github.com/dinno7/artinux/internal/domain/ports"
 	"github.com/dinno7/artinux/internal/domain/services"
+	"github.com/dinno7/artinux/pkg/helper"
 )
 
 type UploadArtifactUC struct {
@@ -46,16 +46,23 @@ func (uc *UploadArtifactUC) Execute(
 ) (string, error) {
 	// NOTE: validate file
 	uc.logger.Info("Validate incomming file", "path", input.FilePath)
+	makeEmptyUnknown(&input.Hostname)
+	makeEmptyUnknown(&input.Username)
+	makeEmptyUnknown(&input.OS)
+	makeEmptyUnknown(&input.Arch)
+
+	if !helper.IsValidOSAndArch(input.OS, input.Arch) {
+		return "", domain.ErrInvalidOsOrArch
+	}
+
 	validatedFile, err := uc.fileValidator.Validate(input.FilePath)
 	if err != nil {
 		uc.logger.Error("File validation failed", err, "path", input.FilePath)
 		return "", err
 	}
 
-	makeEmptyUnknown(&input.Hostname)
-	makeEmptyUnknown(&input.Username)
-	makeEmptyUnknown(&input.OS)
-	makeEmptyUnknown(&input.Arch)
+	file := validatedFile.File
+	defer file.Close()
 
 	// NOTE: Create domain entity
 	uc.logger.Info("Creating domain entity")
@@ -73,15 +80,6 @@ func (uc *UploadArtifactUC) Execute(
 		return "", err
 	}
 
-	// NOTE: open the file for upload
-	uc.logger.Info("Opening file to upload it", "path", input.FilePath)
-	file, err := os.Open(validatedFile.FilePath)
-	if err != nil {
-		uc.logger.Error("Failed to opening file for upload", err, "path", input.FilePath)
-		return "", domain.ErrInternal.Wrap(err)
-	}
-	defer file.Close()
-
 	// NOTE: Compute local checksum
 	uc.logger.Info("Computing file checksum", "path", input.FilePath)
 	localChecksum, err := uc.hasher.ComputeFromReaderToBase64(file)
@@ -92,7 +90,7 @@ func (uc *UploadArtifactUC) Execute(
 	uc.logger.Info("Checksum computed", "path", input.FilePath, "checksum", localChecksum)
 	artifact.AddChecksum(localChecksum)
 
-	// NOTE: for use again in hasher
+	// NOTE: for use again
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		uc.logger.Error("Failed to reset opened file reader's pointer", err, "path", input.FilePath)
 		return "", domain.ErrInternal.Wrap(err)
@@ -119,6 +117,16 @@ func (uc *UploadArtifactUC) Execute(
 			"uploaded_checksum", storageChecksum,
 			"local_checksum", localChecksum,
 		)
+		err := uc.storage.DeleteObject(ctx, artifact.ObjectKey)
+		if err != nil {
+			uc.logger.Warn(
+				"Failed to delete object from storage which uploaded via invalid checksum",
+				nil,
+				"object_key", artifact.ObjectKey,
+				"uploaded_checksum", storageChecksum,
+				"local_checksum", localChecksum,
+			)
+		}
 		return "", domain.ErrFileUploadNotSupportIntegrity
 	}
 
