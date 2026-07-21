@@ -28,10 +28,17 @@ type ValidationResult struct {
 	FileName  string
 	FileSize  int64
 	Extension string
+	File      *os.File
 }
 
 func (v *FileValidator) Validate(filePath string) (*ValidationResult, error) {
-	info, err := os.Stat(filePath)
+	// INFO: Check file accessibility (can we read it?)
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, domain.ErrFileNotAccessible.MessageF("file not readable: %s", filePath)
+	}
+
+	info, err := f.Stat()
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, domain.ErrFileNotExists
@@ -42,41 +49,52 @@ func (v *FileValidator) Validate(filePath string) (*ValidationResult, error) {
 		return nil, domain.ErrInternal.Wrap(err)
 	}
 
-	if info.IsDir() {
-		return nil, domain.ErrPathNotFile
+	// INFO: Check file info
+	if err := validateFileInfo(info, v.maxFileSizeBytes); err != nil {
+		return nil, err
 	}
 
-	if info.Size() == 0 {
-		return nil, domain.ErrFileIsEmpty
-	}
+	// TODO: Validate file type via file's magic number
 
-	if info.Size() > v.maxFileSizeBytes {
-		return nil, domain.ErrFileTooLarge.MessageF(
-			"file size %d bytes exceeds maximum %d bytes",
-			info.Size(),
-			v.maxFileSizeBytes,
-		)
-	}
-
-	// INFO: Check file extension
 	ext := getExtension(filePath)
-	if !slices.Contains(v.allowedExtensions, ext) {
-		return nil, domain.ErrInvalidExtension
+	// INFO: Check file extension
+	if err := validateFileExt(ext, v.allowedExtensions); err != nil {
+		return nil, err
 	}
-
-	// INFO: Check file accessibility (can we read it?)
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, domain.ErrFileNotAccessible.MessageF("file not readable: %s", filePath)
-	}
-	f.Close()
 
 	return &ValidationResult{
 		FilePath:  filePath,
 		FileName:  filepath.Base(filePath),
 		FileSize:  info.Size(),
 		Extension: ext,
+		File:      f,
 	}, nil
+}
+
+func validateFileInfo(info os.FileInfo, maxFileSizeBytes int64) error {
+	if info.IsDir() {
+		return domain.ErrPathNotFile
+	}
+
+	if info.Size() == 0 {
+		return domain.ErrFileIsEmpty
+	}
+
+	if info.Size() > maxFileSizeBytes {
+		return domain.ErrFileTooLarge.MessageF(
+			"file size %d bytes exceeds maximum %d bytes",
+			info.Size(),
+			maxFileSizeBytes,
+		)
+	}
+	return nil
+}
+
+func validateFileExt(ext string, allowedExtensions []string) error {
+	if !slices.Contains(allowedExtensions, ext) {
+		return domain.ErrInvalidExtension
+	}
+	return nil
 }
 
 func getExtension(filename string) string {
