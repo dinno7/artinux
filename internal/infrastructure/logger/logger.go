@@ -6,7 +6,10 @@ import (
 	"github.com/dinno7/artinux/internal/domain/ports"
 )
 
-var once sync.Once
+var (
+	once   sync.Once
+	global ports.Logger
+)
 
 type LoggerConfig struct {
 	Format string
@@ -14,9 +17,8 @@ type LoggerConfig struct {
 }
 
 func NewLogger(loggerConfig LoggerConfig) ports.Logger {
-	var l ports.Logger
 	once.Do(func() {
-		l = newZapLogger(&loggerConfig)
+		global = newZapLogger(&loggerConfig)
 	})
-	return l
+	return global
 }
