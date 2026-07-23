@@ -33,11 +33,13 @@ func NewUploadArtifactUC(
 }
 
 type UploadArtifactInput struct {
-	FilePath string
-	Hostname string
-	Username string
-	OS       string
-	Arch     string
+	FileName   string
+	FileSize   int64
+	FileReader io.ReadSeeker
+	Hostname   string
+	Username   string
+	OS         string
+	Arch       string
 }
 
 func (uc *UploadArtifactUC) Execute(
@@ -45,65 +47,67 @@ func (uc *UploadArtifactUC) Execute(
 	input UploadArtifactInput,
 ) (string, error) {
 	// NOTE: validate file
-	uc.logger.Info("Validate incomming file", "path", input.FilePath)
-	makeEmptyUnknown(&input.Hostname)
-	makeEmptyUnknown(&input.Username)
-	makeEmptyUnknown(&input.OS)
-	makeEmptyUnknown(&input.Arch)
+	uc.logger.Info("Validate incomming file", "file_name", input.FileName)
 
 	if !helper.IsValidOSAndArch(input.OS, input.Arch) {
 		return "", domain.ErrInvalidOsOrArch
 	}
 
-	validatedFile, err := uc.fileValidator.Validate(input.FilePath)
+	makeEmptyUnknown(&input.Hostname)
+	makeEmptyUnknown(&input.Username)
+
+	ext, err := uc.fileValidator.ValidateAndGetExt(input.FileName, input.FileSize)
 	if err != nil {
-		uc.logger.Error("File validation failed", err, "path", input.FilePath)
+		uc.logger.Error("File validation failed", err, "file_name", input.FileName)
 		return "", err
 	}
 
-	file := validatedFile.File
-	defer file.Close()
+	file := input.FileReader
 
 	// NOTE: Create domain entity
 	uc.logger.Info("Creating domain entity")
 	artifact, err := entities.NewArtifact(
-		validatedFile.FileName,
-		validatedFile.Extension,
+		input.FileName,
+		ext,
 		input.Hostname,
 		input.Username,
 		input.OS,
 		input.Arch,
-		validatedFile.FileSize,
+		input.FileSize,
 	)
 	if err != nil {
-		uc.logger.Error("Failed to craeting domain enity", err, "path", input.FilePath)
+		uc.logger.Error("Failed to craeting domain enity", err, "file_name", input.FileName)
 		return "", err
 	}
 
 	// NOTE: Compute local checksum
-	uc.logger.Info("Computing file checksum", "path", input.FilePath)
+	uc.logger.Info("Computing file checksum", "file_name", input.FileName)
 	localChecksum, err := uc.hasher.ComputeFromReaderToBase64(file)
 	if err != nil {
-		uc.logger.Error("Failed to compute checksum", err, "path", input.FilePath)
+		uc.logger.Error("Failed to compute checksum", err, "file_name", input.FileName)
 		return "", err
 	}
-	uc.logger.Info("Checksum computed", "path", input.FilePath, "checksum", localChecksum)
+	uc.logger.Info("Checksum computed", "file_name", input.FileName, "checksum", localChecksum)
 	artifact.AddChecksum(localChecksum)
 
 	// NOTE: for use again
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		uc.logger.Error("Failed to reset opened file reader's pointer", err, "path", input.FilePath)
+		uc.logger.Error(
+			"Failed to reset opened file reader's pointer",
+			err,
+			"file_name", input.FileName,
+		)
 		return "", domain.ErrInternal.Wrap(err)
 	}
 
 	// NOTE: Upload to storage
-	uc.logger.Info("Uploading file", "path", input.FilePath, "object_key", artifact.ObjectKey)
+	uc.logger.Info("Uploading file", "file_name", input.FileName, "object_key", artifact.ObjectKey)
 	storageChecksum, err := uc.storage.Upload(ctx, file, artifact)
 	if err != nil {
 		uc.logger.Error(
 			"Failed to uploading file",
 			err,
-			"path", input.FilePath,
+			"file_name", input.FileName,
 			"object_key", artifact.ObjectKey,
 		)
 		return "", err
