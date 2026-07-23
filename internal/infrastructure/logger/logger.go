@@ -16,7 +16,7 @@ type LoggerConfig struct {
 	Level  string
 }
 
-func NewLogger(loggerConfig LoggerConfig) ports.Logger {
+func Get(loggerConfig LoggerConfig) ports.Logger {
 	once.Do(func() {
 		global = newZapLogger(&loggerConfig)
 	})

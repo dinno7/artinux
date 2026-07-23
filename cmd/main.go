@@ -28,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	logger := logger.NewLogger(logger.LoggerConfig{
+	logger := logger.Get(logger.LoggerConfig{
 		Level:  cfg.Logging.Level,
 		Format: cfg.Logging.Format,
 	})
