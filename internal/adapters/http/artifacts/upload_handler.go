@@ -85,7 +85,6 @@ func (h *ArtifactHTTPHandler) UploadArtifact(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
 
 		items[i] = usecases.UploadArtifactItem{
 			FileName:   art.Filename,
