@@ -1,4 +1,4 @@
-env: dev # prod, dev
+env: prod # prod, dev
 
 # INFO: App logging configurations
 logging:

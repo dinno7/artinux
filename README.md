@@ -44,19 +44,13 @@ pkg/
 
 ## Quick Start
 
+### The Simplest Way
+
+You can copy/paste (& edit them to your own values) everything in [examples](https://github.com/dinno7/artinux/tree/main/examples) directory and then just run:
+
 ```bash
-# Clone and enter the project
-git clone https://github.com/dinno7/artinux && cd artinux
+docker compose up
 
-# Copy environment and config files
-cp .env.example .env
-cp config.yml.example config.yml
-
-# Edit .env with your MinIO credentials
-# Edit config.yml for your setup
-
-# Start MinIO and the application
-docker compose up --build
 ```
 
 The service listens on `http://localhost:7000`. The Swagger UI is available at `http://localhost:7000/docs`.
@@ -101,14 +95,14 @@ MinIO credentials come from environment variables, you can set them in `.env` fi
 - `MINIO_ROOT_USER`
 - `MINIO_ROOT_PASSWORD`
 
-## Build & Run(MinIO must be running)
+## Build & Run
 
-### Standalone
+### Standalone(MinIO must be running)
 
 ```bash
-go build -o ./bin/artinux ./cmd/main.go
+go build -o ./artinux ./cmd/main.go
 
-./bin/artinux
+./artinux
 ```
 
 ### With Docker Compose
