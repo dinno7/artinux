@@ -18,6 +18,7 @@ import (
 type minioStorage struct {
 	client     *minio.Client
 	bucketName string
+	region     string
 }
 
 type MinIOConfig struct {
@@ -46,6 +47,7 @@ func NewMinIOStorage(cfg MinIOConfig) (*minioStorage, error) {
 	s := &minioStorage{
 		client:     minioClient,
 		bucketName: cfg.BucketName,
+		region:     cfg.Region,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
@@ -78,14 +80,34 @@ func (s *minioStorage) CreateBucket(ctx context.Context, bucketName string, regi
 
 	isBucketExists, err := s.client.BucketExists(ctx, normBucketName)
 	if err != nil {
-		return err
+		return domain.ErrStorageBucketExists.Wrap(err)
 	}
 	if !isBucketExists {
-		return s.client.MakeBucket(
+		if err := s.client.MakeBucket(
 			ctx,
 			normBucketName,
 			minio.MakeBucketOptions{Region: region, ObjectLocking: true, ForceCreate: false},
-		)
+		); err != nil {
+			return domain.ErrStorageFailedCreateBucket.Wrap(err)
+		}
+	}
+	return nil
+}
+
+func (s *minioStorage) ClearBucket(ctx context.Context) error {
+	objs := s.client.ListObjects(ctx, s.bucketName, minio.ListObjectsOptions{
+		WithMetadata: false,
+		Recursive:    true,
+	})
+
+	objectKeys := []string{}
+	for obj := range objs {
+		objectKeys = append(objectKeys, obj.Key)
+	}
+	if len(objectKeys) > 0 {
+		if err := s.DeleteBatch(ctx, objectKeys); err != nil {
+			return err
+		}
 	}
 	return nil
 }
