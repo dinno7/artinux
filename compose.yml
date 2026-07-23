@@ -17,5 +17,19 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  artinux:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: artinux
+    ports:
+      - 7000:7000
+    volumes:
+      - ./config.yml:/app/config.yml:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+
 volumes:
   data-minio:
