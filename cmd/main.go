@@ -92,13 +92,6 @@ func main() {
 	apiGroup := router.GetAPIGroup()
 
 	apiGroup.GET("/health", commonHTTPHandler.Health)
-	apiGroup.DELETE("/clear", func(c echo.Context) error {
-		if err := objStorage.ClearBucket(c.Request().Context()); err != nil {
-			logger.Error("Failed clear bucket", err)
-			return response.InternalServerResponse(c, "failed clear bucket")
-		}
-		return nil
-	})
 
 	artifactsGroup := apiGroup.Group("/artifacts")
 	artifactsGroup.GET("", artifactHTTPHandler.ListArtifact)
