@@ -27,12 +27,20 @@ var (
 		"not_a_file",
 		"provided path is not a file",
 	)
-	ErrFileNotAccessible    = NewDomainError("file_not_accessible", "file not accessible")
+	ErrFileNotAccessible          = NewDomainError("file_not_accessible", "file not accessible")
+	ErrFileFailedToDetectFileType = NewDomainError(
+		"failed_detect_file_type",
+		"file type's detection has been failed",
+	)
 	ErrFileIsEmpty          = NewDomainError("empty_file", "file is empty")
 	ErrFileNotExists        = NewDomainError("file_not_exists", "file not exists")
 	ErrAuthenticationFailed = NewDomainError("authentication_failed", "authentication failed")
 
-	ErrStorageUnavailable    = NewDomainError("storage_unavailable", "storage unavailable")
+	ErrStorageUnavailable = NewDomainError("storage_unavailable", "storage unavailable")
+	ErrInvalidOsOrArch    = NewDomainError(
+		"invalid_os_or_arch",
+		"os's name or arch's name is not valid",
+	)
 	ErrStorageFailedToUpload = NewDomainError(
 		"storage_failed_upload",
 		"failed to upload object to storage",
@@ -52,6 +60,18 @@ var (
 	ErrStorageEmptyArtifactToUpload = NewDomainError(
 		"empty_artifact_upload",
 		"no artifact to upload",
+	)
+	ErrStorageFailedCreateBucket = NewDomainError(
+		"failed_create_bucket",
+		"failed to create new bucket",
+	)
+	ErrStorageFailedRemoveBucket = NewDomainError(
+		"failed_remove_bucket",
+		"failed to remove bucket",
+	)
+	ErrStorageBucketExists = NewDomainError(
+		"bucket_exists",
+		"bucket already exists",
 	)
 
 	ErrInvalidConfiguration = NewDomainError("invalid_configuration", "configuration is not valid")
