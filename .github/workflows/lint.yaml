@@ -35,14 +35,14 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
-      - name: Update Pull Request with formatted changes
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: format code"
-          title: "[AUTO] Format code"
-          body: "This PR automatically formats the code."
-          branch: ${{ github.head_ref }}
-          base: ${{ github.base_ref }}
-          labels: |
-            automated pr
+      # - name: Update Pull Request with formatted changes
+      #   uses: peter-evans/create-pull-request@v7
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     commit-message: "chore: format code"
+      #     title: "[AUTO] Format code"
+      #     body: "This PR automatically formats the code."
+      #     branch: ${{ github.head_ref }}
+      #     base: ${{ github.base_ref }}
+      #     labels: |
+      #       automated pr
