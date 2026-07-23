@@ -58,7 +58,7 @@ func (a *Artifact) AddChecksum(checksum string) *Artifact {
 	return a
 }
 
-// Pattern: {os}/{arch}/{YYYY}/{MM}/{DD}/{checksum_prefix}_{original_filename}
+// INFO: Pattern: {os}/{arch}/{YYYY}/{MM}/{DD}/{random_uuid}_{original_filename}
 func resolveObjectKey(fileName, osName, arch string, uploadedAt time.Time) string {
 	return fmt.Sprintf(
 		"%s/%s/%d/%d/%d/%s",
