@@ -60,7 +60,7 @@ func (cfg *Config) validate() error {
 		return ErrInvalidLogLevel
 	}
 	if !slices.Contains(validLogFormat, cfg.Logging.Format) {
-		return ErrInvalidLogLevel
+		return ErrInvalidLogFormat
 	}
 
 	// INFO: Object storage cfg
