@@ -45,7 +45,21 @@ func NewRouter(addr string, logger ports.Logger) *Router {
 	e := echo.New()
 	setupMiddlewares(e, logger)
 
-	e.GET(fmt.Sprintf("%s/*", docsPath), echoSwagger.WrapHandler)
+	e.GET(
+		fmt.Sprintf("%s*", docsPath),
+		echoSwagger.WrapHandler,
+		func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if c.Request().URL.Path == docsPath {
+					return c.Redirect(
+						http.StatusMovedPermanently,
+						fmt.Sprintf("%s/index.html", docsPath),
+					)
+				}
+				return next(c)
+			}
+		},
+	)
 
 	return &Router{
 		addr:        addr,
