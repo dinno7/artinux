@@ -117,7 +117,7 @@ func (s *minioStorage) Upload(
 func (s *minioStorage) Download(
 	ctx context.Context,
 	objectKey string,
-) (io.ReadCloser, *entities.Artifact, error) {
+) (io.ReadSeekCloser, *entities.Artifact, error) {
 	obj, err := s.client.GetObject(ctx, s.bucketName, objectKey, minio.GetObjectOptions{
 		Checksum: true,
 	})
