@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"math"
 	"strings"
 	"time"
 
@@ -168,7 +167,7 @@ func (s *minioStorage) ListObjects(
 		Recursive:    true,
 		Prefix:       prefix,
 	})
-	artifacts := make([]*entities.Artifact, int(math.Min(float64(len(list)), float64(limit))))
+	artifacts := make([]*entities.Artifact, 0, limit)
 
 	for obj := range list {
 		if len(artifacts) >= limit {
@@ -211,4 +210,3 @@ func (s *minioStorage) DeleteBatch(ctx context.Context, objectKeys []string) err
 
 	return err
 }
-
