@@ -2,6 +2,8 @@ package config
 
 import (
 	"errors"
+	"fmt"
+	"net/url"
 	"regexp"
 	"slices"
 	"strings"
@@ -32,6 +34,12 @@ var (
 	)
 	ErrFileExtStartsWithDot = errors.New(
 		"'upload.allowed_file_exts' should not starts with '.'",
+	)
+	ErrHTTPServerInvalidPort = errors.New(
+		"http_server.port is not valid, the port must be between 0-65535",
+	)
+	ErrHTTPServerInvalidAddress = errors.New(
+		"http_server.host, http_server.port invalid address for http server",
 	)
 )
 
@@ -87,6 +95,21 @@ func (cfg *Config) validate() error {
 		if strings.HasPrefix(ext, ".") {
 			return ErrFileExtStartsWithDot
 		}
+	}
+
+	// INFO: HTTP server
+	if cfg.HTTPServer.Port < 0 || cfg.HTTPServer.Port > 65535 {
+		return ErrHTTPServerInvalidPort
+	}
+	httpServerAddr := fmt.Sprintf(
+		"%s://%s:%d",
+		cfg.HTTPServer.Schema,
+		cfg.HTTPServer.Host,
+		cfg.HTTPServer.Port,
+	)
+	_, err := url.Parse(httpServerAddr)
+	if err != nil {
+		return errors.Join(ErrHTTPServerInvalidAddress, err)
 	}
 
 	return nil

@@ -4,9 +4,10 @@ import "time"
 
 type Config struct {
 	Env           string        `mapstructure:"env"`
-	ObjectStorage ObjectStorage `mapstructure:"object_storage" validate:"required"`
+	ObjectStorage ObjectStorage `mapstructure:"object_storage"`
 	Upload        Upload        `mapstructure:"upload"`
-	Logging       Logging       `mapstructure:"logging"        validate:"required"`
+	Logging       Logging       `mapstructure:"logging"       `
+	HTTPServer    HTTPServer    `mapstructure:"http_server"`
 }
 
 type ObjectStorage struct {
@@ -21,11 +22,17 @@ type ObjectStorage struct {
 }
 
 type Upload struct {
-	MaxSizeMB             int64    `mapstructure:"max_size_mb"       validate:"required"`
-	AllowedFileExtensions []string `mapstructure:"allowed_file_exts" validate:"required"`
+	MaxSizeMB             int64    `mapstructure:"max_size_mb"      `
+	AllowedFileExtensions []string `mapstructure:"allowed_file_exts"`
 }
 
 type Logging struct {
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`
+}
+
+type HTTPServer struct {
+	Schema string `mapstructure:"schema"`
+	Host   string `mapstructure:"host"`
+	Port   int    `mapstructure:"port"`
 }

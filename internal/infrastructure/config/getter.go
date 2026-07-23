@@ -76,6 +76,11 @@ func getDefaultConfig() *Config {
 			MaxUploadRetries: 10,
 			HealthInterval:   time.Second * 5,
 		},
+		HTTPServer: HTTPServer{
+			Schema: "http",
+			Host:   "127.0.0.1",
+			Port:   7000,
+		},
 	}
 }
 

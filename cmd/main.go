@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 
@@ -86,7 +87,8 @@ func main() {
 		deleteArtifactsUC,
 	)
 
-	router := server.NewRouter("localhost:7000", logger)
+	addr := fmt.Sprintf("%s:%d", cfg.HTTPServer.Host, cfg.HTTPServer.Port)
+	router := server.NewRouter(addr, logger)
 	apiGroup := router.GetAPIGroup()
 
 	apiGroup.GET("/health", commonHTTPHandler.Health)
@@ -104,7 +106,7 @@ func main() {
 	artifactsGroup.POST("", artifactHTTPHandler.UploadArtifact)
 	artifactsGroup.DELETE("*", artifactHTTPHandler.DeleteArtifacts)
 
-	logger.Info("Server is running on port 7000")
+	logger.Info("Server is running", "addr", addr)
 	if err := router.ServeHTTP(ctx); err != nil {
 		logger.Fatal("failed start http server", err)
 	}
