@@ -105,6 +105,7 @@ func setupMiddlewares(e *echo.Echo, logger ports.Logger) {
 			LogRequestID:     true,
 			LogUserAgent:     true,
 			LogStatus:        true,
+			LogError:         true,
 			LogContentLength: true,
 			LogResponseSize:  true,
 			// forwards error to the global error handler, so it can decide appropriate status code.
@@ -151,4 +152,5 @@ func setupMiddlewares(e *echo.Echo, logger ports.Logger) {
 		},
 	))
 	e.Use(middleware.RemoveTrailingSlash())
+	e.Use(middleware.RequestID())
 }
