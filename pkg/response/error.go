@@ -33,3 +33,8 @@ func ErrorResponse[T any](c echo.Context, message string, status int, meta ...T)
 func BadRequestResponse(c echo.Context, message string) error {
 	return ErrorResponse[any](c, message, http.StatusBadRequest)
 }
+
+// InternalServerResponse sends a standardized error response with 400 code.
+func InternalServerResponse(c echo.Context, message string) error {
+	return ErrorResponse[any](c, message, http.StatusInternalServerError)
+}
