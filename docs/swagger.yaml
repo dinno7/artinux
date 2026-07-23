@@ -7,6 +7,24 @@ definitions:
           type: string
         type: array
     type: object
+  artifacts.UploadedArtifactDto:
+    properties:
+      error:
+        type: string
+      file_name:
+        type: string
+      object_key:
+        type: string
+      ok:
+        type: boolean
+    type: object
+  artifacts.UploadedArtifactsDto:
+    properties:
+      artifacts:
+        items:
+          $ref: '#/definitions/artifacts.UploadedArtifactDto'
+        type: array
+    type: object
   entities.Artifact:
     properties:
       architecture:
@@ -19,21 +37,20 @@ definitions:
         type: string
       name:
         type: string
-      objectKey:
+      object_key:
         type: string
-      originalName:
+      original_name:
         type: string
       os:
         type: string
       size:
-        format: int64
         type: integer
-      uploadedAt:
+      uploaded_at:
         type: string
       username:
         type: string
     type: object
-  http.healthResult:
+  http.dependency:
     description: Standard API response wrapper with status, message, and data
     properties:
       name:
@@ -41,9 +58,14 @@ definitions:
       ok:
         type: boolean
     type: object
-  map_string_string:
-    additionalProperties:
-      type: string
+  http.healthResult:
+    properties:
+      dependencies:
+        items:
+          $ref: '#/definitions/http.dependency'
+        type: array
+      env:
+        type: string
     type: object
   response.ErrorResponseData-any:
     properties:
@@ -55,12 +77,29 @@ definitions:
         description: HTTP status code
         type: integer
     type: object
+  response.ResponseSuccessData-any:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   response.ResponseSuccessData-array_entities_Artifact:
     properties:
       data:
         items:
           $ref: '#/definitions/entities.Artifact'
         type: array
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  response.ResponseSuccessData-artifacts_UploadedArtifactsDto:
+    properties:
+      data:
+        $ref: '#/definitions/artifacts.UploadedArtifactsDto'
       message:
         type: string
       status:
@@ -75,15 +114,6 @@ definitions:
       status:
         type: integer
     type: object
-  response.ResponseSuccessData-map_string_string:
-    properties:
-      data:
-        $ref: '#/definitions/map_string_string'
-      message:
-        type: string
-      status:
-        type: integer
-    type: object
 info:
   contact:
     email: tahadlrb7@gmail.com
@@ -92,41 +122,26 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Artinux
 paths:
-  /api/v1/health:
-    get:
-      description: Runs Ping(ctx) for each configured pingable and reports per-component
-        readiness.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            $ref: '#/definitions/response.ResponseSuccessData-http_healthResult'
-      summary: Health check
-      tags:
-      - health
   /artifacts:
     delete:
       consumes:
       - application/json
-      description: Deletes one or more artifacts by their object keys. Currently single-key
-        deletion only; batch delete is not yet implemented.
+      description: Deletes one or more artifacts. Supports deletion via object key
+        in the URL path (single delete) or via request body with multiple object keys
+        (batch delete).
       parameters:
-      - description: Object keys to delete
+      - description: Multiple object keys to delete (in request body)
         in: body
         name: request
-        required: true
         schema:
           $ref: '#/definitions/artifacts.DeleteArtifactsDto'
       produces:
       - application/json
       responses:
         "204":
-          description: Artifact deleted successfully
+          description: Artifacts deleted successfully
         "400":
-          description: Bad request - invalid payload, empty keys, or batch delete
-            not implemented
+          description: Bad request - invalid payload, empty keys, or deletion error
           schema:
             $ref: '#/definitions/response.ErrorResponseData-any'
         "500":
@@ -214,7 +229,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.ResponseSuccessData-map_string_string'
+            $ref: '#/definitions/response.ResponseSuccessData-artifacts_UploadedArtifactsDto'
         "400":
           description: Bad request - missing required field or no files uploaded
           schema:
@@ -226,4 +241,82 @@ paths:
       summary: Upload artifact
       tags:
       - artifacts
+  /artifacts/{object_key}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes one or more artifacts. Supports deletion via object key
+        in the URL path (single delete) or via request body with multiple object keys
+        (batch delete).
+      parameters:
+      - description: Single object key to delete (in URL path)
+        in: path
+        name: object_key
+        type: string
+      - description: Multiple object keys to delete (in request body)
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/artifacts.DeleteArtifactsDto'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Artifacts deleted successfully
+        "400":
+          description: Bad request - invalid payload, empty keys, or deletion error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+      summary: Delete artifacts
+      tags:
+      - artifacts
+  /artifacts/download/{object_key}:
+    get:
+      consumes:
+      - multipart/form-data
+      description: Dowload a single artifact file with system metadata (arch, os,
+        username, hostname). Supports multipart/form-data with file and form fields.
+      parameters:
+      - description: Object key
+        example: linux/amd64/2026/7/22/071671ad-acbd-4c77-9132-b936ad1187c9_artinux_build.gz
+        in: path
+        name: object_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ResponseSuccessData-any'
+        "400":
+          description: Bad request - missing required field or no files uploaded
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData-any'
+      summary: Download artifact
+      tags:
+      - artifacts
+  /health:
+    get:
+      description: Runs Ping(ctx) for each configured pingable and reports per-component
+        readiness.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.ResponseSuccessData-http_healthResult'
+      summary: Health check
+      tags:
+      - health
 swagger: "2.0"

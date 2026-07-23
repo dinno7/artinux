@@ -19,26 +19,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/health": {
-            "get": {
-                "description": "Runs Ping(ctx) for each configured pingable and reports per-component readiness.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Health check",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/response.ResponseSuccessData-http_healthResult"
-                        }
-                    }
-                }
-            }
-        },
         "/artifacts": {
             "get": {
                 "description": "Retrieves a filtered, paginated list of artifacts from storage. Supports prefix filtering and result limiting.",
@@ -150,7 +130,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.ResponseSuccessData-map_string_string"
+                            "$ref": "#/definitions/response.ResponseSuccessData-artifacts_UploadedArtifactsDto"
                         }
                     },
                     "400": {
@@ -168,7 +148,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes one or more artifacts by their object keys. Currently single-key deletion only; batch delete is not yet implemented.",
+                "description": "Deletes one or more artifacts. Supports deletion via object key in the URL path (single delete) or via request body with multiple object keys (batch delete).",
                 "consumes": [
                     "application/json"
                 ],
@@ -181,10 +161,9 @@ const docTemplate = `{
                 "summary": "Delete artifacts",
                 "parameters": [
                     {
-                        "description": "Object keys to delete",
+                        "description": "Multiple object keys to delete (in request body)",
                         "name": "request",
                         "in": "body",
-                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/artifacts.DeleteArtifactsDto"
                         }
@@ -192,10 +171,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Artifact deleted successfully"
+                        "description": "Artifacts deleted successfully"
                     },
                     "400": {
-                        "description": "Bad request - invalid payload, empty keys, or batch delete not implemented",
+                        "description": "Bad request - invalid payload, empty keys, or deletion error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponseData-any"
                         }
@@ -204,6 +183,119 @@ const docTemplate = `{
                         "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/artifacts/download/{object_key}": {
+            "get": {
+                "description": "Dowload a single artifact file with system metadata (arch, os, username, hostname). Supports multipart/form-data with file and form fields.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "artifacts"
+                ],
+                "summary": "Download artifact",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "linux/amd64/2026/7/22/071671ad-acbd-4c77-9132-b936ad1187c9_artinux_build.gz",
+                        "description": "Object key",
+                        "name": "object_key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseSuccessData-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing required field or no files uploaded",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/artifacts/{object_key}": {
+            "delete": {
+                "description": "Deletes one or more artifacts. Supports deletion via object key in the URL path (single delete) or via request body with multiple object keys (batch delete).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "artifacts"
+                ],
+                "summary": "Delete artifacts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Single object key to delete (in URL path)",
+                        "name": "object_key",
+                        "in": "path"
+                    },
+                    {
+                        "description": "Multiple object keys to delete (in request body)",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/artifacts.DeleteArtifactsDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Artifacts deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad request - invalid payload, empty keys, or deletion error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Runs Ping(ctx) for each configured pingable and reports per-component readiness.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseSuccessData-http_healthResult"
                         }
                     }
                 }
@@ -218,6 +310,34 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "artifacts.UploadedArtifactDto": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "object_key": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "artifacts.UploadedArtifactsDto": {
+            "type": "object",
+            "properties": {
+                "artifacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/artifacts.UploadedArtifactDto"
                     }
                 }
             }
@@ -240,20 +360,19 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "objectKey": {
+                "object_key": {
                     "type": "string"
                 },
-                "originalName": {
+                "original_name": {
                     "type": "string"
                 },
                 "os": {
                     "type": "string"
                 },
                 "size": {
-                    "type": "integer",
-                    "format": "int64"
+                    "type": "integer"
                 },
-                "uploadedAt": {
+                "uploaded_at": {
                     "type": "string"
                 },
                 "username": {
@@ -261,7 +380,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.healthResult": {
+        "http.dependency": {
             "description": "Standard API response wrapper with status, message, and data",
             "type": "object",
             "properties": {
@@ -273,10 +392,18 @@ const docTemplate = `{
                 }
             }
         },
-        "map_string_string": {
+        "http.healthResult": {
             "type": "object",
-            "additionalProperties": {
-                "type": "string"
+            "properties": {
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.dependency"
+                    }
+                },
+                "env": {
+                    "type": "string"
+                }
             }
         },
         "response.ErrorResponseData-any": {
@@ -289,6 +416,18 @@ const docTemplate = `{
                 "meta": {},
                 "status": {
                     "description": "HTTP status code",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ResponseSuccessData-any": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "integer"
                 }
             }
@@ -310,11 +449,11 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ResponseSuccessData-http_healthResult": {
+        "response.ResponseSuccessData-artifacts_UploadedArtifactsDto": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/http.healthResult"
+                    "$ref": "#/definitions/artifacts.UploadedArtifactsDto"
                 },
                 "message": {
                     "type": "string"
@@ -324,11 +463,11 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ResponseSuccessData-map_string_string": {
+        "response.ResponseSuccessData-http_healthResult": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/map_string_string"
+                    "$ref": "#/definitions/http.healthResult"
                 },
                 "message": {
                     "type": "string"
