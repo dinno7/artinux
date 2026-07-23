@@ -14,7 +14,7 @@ type ErrorResponseData[T any] struct {
 	Status int `json:"status"`
 	// Error message
 	Message string `json:"message"`
-	Meta    T      `json:"meta"`
+	Meta    T      `json:"meta,omitempty"`
 }
 
 // ErrorResponse sends a standardized error response.
