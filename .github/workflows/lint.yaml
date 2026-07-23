@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 
 # Grant the jobs required permissions for OIDC to work
 permissions:
