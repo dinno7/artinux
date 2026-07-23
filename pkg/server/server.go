@@ -21,8 +21,8 @@ import (
 
 const (
 	docsPath              = "/docs"
-	WriteTimeout          = time.Second * 30
-	ReadTimeout           = time.Second * 10
+	WriteTimeout          = time.Second * 5
+	ReadTimeout           = time.Second * 5
 	IdleTimeout           = time.Minute * 1
 	ServerShutdownTimeout = time.Second * 5
 	GracefulTimeout       = time.Second * 5
