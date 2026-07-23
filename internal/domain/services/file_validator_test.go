@@ -50,7 +50,7 @@ func TestFileValidator_Validate(t *testing.T) {
 			setup: func(t *testing.T) string {
 				return "/nonexistent/somefile.deb"
 			},
-			expectedError: domain.ErrFileNotExists,
+			expectedError: domain.ErrFileNotAccessible,
 		},
 		{
 			testName: "invalid extension",
@@ -78,7 +78,7 @@ func TestFileValidator_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
 			path := tt.setup(t)
-			result, err := validator.Validate(path)
+			result, err := validator.ValidateFile(path)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -104,7 +104,7 @@ func TestFileValidator_FileTooLarge(t *testing.T) {
 		"somefile.deb",
 		strings.Repeat("string", 1024*1024),
 	)
-	_, err := validator.Validate(path)
+	_, err := validator.ValidateFile(path)
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, domain.ErrFileTooLarge)
 }

@@ -31,7 +31,23 @@ type ValidationResult struct {
 	File      *os.File
 }
 
-func (v *FileValidator) Validate(filePath string) (*ValidationResult, error) {
+func (v *FileValidator) ValidateAndGetExt(
+	fileName string,
+	fileSize int64,
+) (string, error) {
+	if err := validateSize(fileSize, v.maxFileSizeBytes); err != nil {
+		return "", err
+	}
+
+	ext := getExtension(fileName)
+	// INFO: Check file extension
+	if err := validateFileExt(ext, v.allowedExtensions); err != nil {
+		return "", err
+	}
+	return ext, nil
+}
+
+func (v *FileValidator) ValidateFile(filePath string) (*ValidationResult, error) {
 	// INFO: Check file accessibility (can we read it?)
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -75,15 +91,22 @@ func validateFileInfo(info os.FileInfo, maxFileSizeBytes int64) error {
 	if info.IsDir() {
 		return domain.ErrPathNotFile
 	}
+	err := validateSize(info.Size(), maxFileSizeBytes)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	if info.Size() == 0 {
+func validateSize(size int64, maxFileSizeBytes int64) error {
+	if size == 0 {
 		return domain.ErrFileIsEmpty
 	}
 
-	if info.Size() > maxFileSizeBytes {
+	if size > maxFileSizeBytes {
 		return domain.ErrFileTooLarge.MessageF(
 			"file size %d bytes exceeds maximum %d bytes",
-			info.Size(),
+			size,
 			maxFileSizeBytes,
 		)
 	}
