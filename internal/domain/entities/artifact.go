@@ -11,17 +11,17 @@ import (
 )
 
 type Artifact struct {
-	ObjectKey    string
-	Name         string
-	OriginalName string
-	Extension    string
-	Size         int64
-	OS           string
-	Architecture string
-	Username     string
-	Hostname     string
-	Checksum     string
-	UploadedAt   time.Time
+	ObjectKey    string    `json:"object_key"`
+	Name         string    `json:"name"`
+	OriginalName string    `json:"original_name"`
+	Extension    string    `json:"extension"`
+	Size         int64     `json:"size"`
+	OS           string    `json:"os"`
+	Architecture string    `json:"architecture"`
+	Username     string    `json:"username"`
+	Hostname     string    `json:"hostname"`
+	Checksum     string    `json:"checksum"`
+	UploadedAt   time.Time `json:"uploaded_at"`
 }
 
 func NewArtifact(
