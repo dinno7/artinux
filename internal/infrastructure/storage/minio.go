@@ -163,7 +163,6 @@ func (s *minioStorage) ListObjects(
 	list := s.client.ListObjects(ctx, s.bucketName, minio.ListObjectsOptions{
 		WithMetadata: true,
 		MaxKeys:      limit,
-		WithVersions: true,
 		Recursive:    true,
 		Prefix:       prefix,
 	})
