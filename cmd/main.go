@@ -14,14 +14,12 @@ import (
 	"github.com/dinno7/artinux/internal/infrastructure/config"
 	"github.com/dinno7/artinux/internal/infrastructure/logger"
 	"github.com/dinno7/artinux/internal/infrastructure/storage"
-	"github.com/dinno7/artinux/pkg/response"
 	"github.com/dinno7/artinux/pkg/server"
-	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	ctx, cancle := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancle()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
 	cfg, err := config.Get()
 	if err != nil {
@@ -103,5 +101,6 @@ func main() {
 	if err := router.ServeHTTP(ctx); err != nil {
 		logger.Fatal("failed start http server", err)
 	}
-	<-ctx.Done()
+
+	fmt.Println("GoodBye!")
 }

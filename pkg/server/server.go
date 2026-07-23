@@ -5,10 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
 	_ "github.com/dinno7/artinux/docs"
@@ -80,8 +77,6 @@ func (r *Router) ServeHTTP(ctx context.Context) error {
 		ReadTimeout:  ReadTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	// Start server
 	go func() {
