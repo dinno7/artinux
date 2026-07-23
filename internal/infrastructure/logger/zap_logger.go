@@ -73,7 +73,7 @@ func (l *zapLogger) With(args ...any) ports.Logger {
 		args = append(args, "(MISSING)")
 	}
 	return &zapLogger{
-		logger: l.logger.With(args),
+		logger: l.logger.With(args...),
 	}
 }
 
